@@ -1,5 +1,12 @@
 #include "utils.glsl"
 
+vec2[3] coords_from_angles(vec3 angles){
+    vec2 a = vec2(cos(angles.x), sin(angles.x));
+    vec2 b = vec2(cos(angles.y), sin(angles.y));
+    vec2 c = vec2(cos(angles.z), sin(angles.z));
+    return vec2[](a,b,c);
+}
+
 float area(vec2 a, vec2 b, vec2 c){
     return a.x*(b.y-c.y) + b.x*(c.y-a.y) + c.x*(a.y-b.y);
 }
@@ -40,10 +47,13 @@ vec4 triangles(vec3 pos, vec2 uv, int bands, float thickness, vec3 angles, vec4 
         else{
             coli = col2;
         }
+        float radius = float(i)*thickness;
         float time = iGlobalTime * (1.0 + hash2_1(pos.yx) * 2.0) + ph;
         ph += 5.2*float(i);
         vec3 tr = vec3(sin(time), cos(time), 0)*thickness*0.0;
-        vec4 trii = triangle(pos+tr, uv, float(i)*thickness, angles, coli);
+        vec2[3] ps = coords_from_angles(angles);
+        vec3 centering = vec3(((ps[0] + ps[1] + ps[2])/(radius)+pos.xy)/3.,0.);
+        vec4 trii = triangle(pos+tr+centering, uv, radius, angles, coli);
         color = mix(color, trii, trii.a);
     }
     return color;
@@ -58,7 +68,7 @@ void triangle_main(){
     float g = sin((uv.x + uv.y + sin(time * 0.5)) * 0.5) * 0.5 + 0.5;
     gl_FragColor = vec4(r, g, b, 1.0);
 
-    #define angles vec3(0.*PI/180., 180.*PI/180., 210.*PI/180.)
+    #define angles vec3(0.*PI/180., 180.*PI/180., 110.*PI/180.)
 
     vec4 tri = triangles(vec3(0.0, 0.0, 1.0), uv, 3, 0.8, angles, vec4(0.975, 0.237, 0.362, 1.0),vec4(0.084, 0.5341, 0.8258, 1.0));
 
